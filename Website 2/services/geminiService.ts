@@ -5,9 +5,7 @@ import { getGeminiApiKey } from "./apiKey";
 function getClient(): GoogleGenerativeAI {
   const key = getGeminiApiKey();
   if (!key) {
-    throw new Error(
-      "Missing Gemini API key. Click 'Set API Key' and paste your key to run live analysis."
-    );
+    throw new Error("Missing API Key. Please set it in the dashboard.");
   }
   return new GoogleGenerativeAI(key);
 }
@@ -21,61 +19,34 @@ function safeJsonParse(text: string): any {
   } catch {
     const firstObj = candidate.indexOf('{');
     const lastObj = candidate.lastIndexOf('}');
-    if (firstObj !== -1 && lastObj !== -1 && lastObj > firstObj) {
-      const slice = candidate.slice(firstObj, lastObj + 1);
-      return JSON.parse(slice);
+    if (firstObj !== -1 && lastObj !== -1) {
+      return JSON.parse(candidate.slice(firstObj, lastObj + 1));
     }
-    throw new Error("Failed to parse Gemini JSON response.");
+    throw new Error("Failed to parse AI response.");
   }
 }
 
 export const analyzeEvidence = async (evidence: EvidenceItem): Promise<AnalysisResult> => {
   try {
     const genAI = getClient();
-    // Use the exact preview identifier for 2026 Gemini 3 models
-    const model = genAI.getGenerativeModel({ 
-        model: "gemini-3-flash-preview" 
-    });
+    // Using the stable 2026 preview identifier for Gemini 3
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
-    const prompt = `
-      You are LexiPro, a specialized forensic legal AI. 
-      Analyze the following raw evidence snippet.
+    const prompt = `Analyze this medical-legal evidence: ${evidence.content}. 
+    Return JSON with fields: summary, liability, reasoning, statutes.`;
 
-      METADATA:
-      - Type: ${evidence.type}
-      - Timestamp: ${evidence.timestamp}
-      - ID: ${evidence.id}
-
-      CONTENT: "${evidence.content}"
-
-      TASK: Provide a deep forensic analysis. 
-
-      OUTPUT REQUIREMENTS (JSON):
-      1. summary: A professional summary.
-      2. liability: A short risk assessment.
-      3. reasoning: Detailed 'Chain-of-Thought' explanation.
-      4. statutes: List 2-3 specific medical-legal terms.
-    `;
-
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: {
-        responseMimeType: "application/json",
-      }
-    });
-
-    const text = result.response.text();
-    if (!text) throw new Error("No response from AI");
-    
-    return safeJsonParse(text) as AnalysisResult;
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    return safeJsonParse(response.text());
 
   } catch (error) {
-    console.error("Gemini Analysis Failed:", error);
+    console.error("AI Error:", error);
+    // CRITICAL FIX: Returning a valid object instead of throwing prevents the blank screen crash
     return {
-      summary: "Analysis interrupted.",
-      liability: "System Error",
-      reasoning: error instanceof Error ? error.message : "The forensic engine could not complete the request.",
-      statutes: ["Error"],
+      summary: "Forensic analysis failed to initialize.",
+      liability: "Service Error",
+      reasoning: "The system encountered a model mismatch or API limit. Please check your console.",
+      statutes: ["Error 404/429"]
     };
   }
 };
