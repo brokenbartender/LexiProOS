@@ -1,7 +1,7 @@
 {
   "name": "lexipro-forensic-os",
   "private": true,
-  "version": "2.5.0",
+  "version": "2.6.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -17,9 +17,7 @@
   "devDependencies": {
     "@types/react": "^18.2.64",
     "@types/react-dom": "^18.2.21",
-    "@types/node": "^20.11.24",
-    "@vitejs/plugin-react": "^4.2.1",
-    "typescript": "^5.4.2",
-    "vite": "^5.1.5"
+    "vite": "^5.1.5",
+    "typescript": "^5.4.2"
   }
 }
