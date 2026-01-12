@@ -1,0 +1,5 @@
+{
+  "name": "LexiPro Forensic OS",
+  "description": "The First Vertical Forensic OS for Medical Liability. A high-end, Docker-native legal tech platform powered by Gemini 3 Pro.",
+  "requestFramePermissions": []
+}
