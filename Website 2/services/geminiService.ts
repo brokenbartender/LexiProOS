@@ -32,14 +32,14 @@ function safeJsonParse(text: string): any {
 export const analyzeEvidence = async (evidence: EvidenceItem): Promise<AnalysisResult> => {
   try {
     const genAI = getClient();
-    // Updated to gemini-3-flash: the current 2026 stable model for v1beta/v1
+    // Use the exact preview identifier for 2026 Gemini 3 models
     const model = genAI.getGenerativeModel({ 
-        model: "gemini-3-flash" 
+        model: "gemini-3-flash-preview" 
     });
 
     const prompt = `
       You are LexiPro, a specialized forensic legal AI. 
-      Analyze the following raw evidence snippet from a medical malpractice dossier.
+      Analyze the following raw evidence snippet.
 
       METADATA:
       - Type: ${evidence.type}
@@ -48,13 +48,13 @@ export const analyzeEvidence = async (evidence: EvidenceItem): Promise<AnalysisR
 
       CONTENT: "${evidence.content}"
 
-      TASK: Perform a deep forensic analysis. Identify contradictions, standard of care violations, or credibility issues.
+      TASK: Provide a deep forensic analysis. 
 
       OUTPUT REQUIREMENTS (JSON):
-      1. summary: A professional summary (max 2 sentences).
-      2. liability: A short risk assessment (e.g., "High Risk: Failure to Rescue").
+      1. summary: A professional summary.
+      2. liability: A short risk assessment.
       3. reasoning: Detailed 'Chain-of-Thought' explanation.
-      4. statutes: List 2-3 specific medical-legal terms or protocols.
+      4. statutes: List 2-3 specific medical-legal terms.
     `;
 
     const result = await model.generateContent({
