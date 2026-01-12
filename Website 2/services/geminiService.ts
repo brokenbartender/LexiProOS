@@ -11,21 +11,22 @@ function getClient(): GoogleGenerativeAI {
 }
 
 /**
- * TYPO-PROOF PARSER:
- * This function handles the "Correction Layer" by searching for 
- * known typos and fixing them before the JSON is returned to the UI.
+ * THE ULTIMATE TYPO-PROOF PARSER:
+ * This layer forcefully corrects "AI slop" tokens that persistent prompts fail to fix.
  */
 function typoProofParse(text: string): AnalysisResult {
   // 1. Initial cleaning of markdown artifacts
   let cleanText = text.replace(/```json|```/gi, "").trim();
 
-  // 2. REGEX LAYER: Force-correct known persistent typos
+  // 2. EXPANDED REGEX LAYER: Force-correct known persistent typos
   cleanText = cleanText
-    .replace(/\bIternal\b/g, "Internal")    // Fixes 'Iternal'
-    .replace(/\bHgh\b/gi, "High")           // Fixes 'Hgh' (case insensitive)
-    .replace(/\bTe statement\b/g, "The statement")
-    .replace(/\bTis statement\b/g, "This statement")
-    .replace(/\bTe evidence\b/g, "The evidence");
+    .replace(/\bTe\b/g, "The")               // Fixes "Te" -> "The"
+    .replace(/\btis\b/gi, "this")           // Fixes "tis" -> "this"
+    .replace(/\bPtential\b/gi, "Potential") // Fixes "Ptential" -> "Potential"
+    .replace(/\bIternal\b/gi, "Internal")   // Fixes "Iternal" -> "Internal"
+    .replace(/\bHgh\b/gi, "High")           // Fixes "Hgh" -> "High"
+    .replace(/\bTe statement\b/gi, "The statement")
+    .replace(/\bTe evidence\b/gi, "The evidence");
 
   try {
     return JSON.parse(cleanText);
@@ -49,11 +50,10 @@ export const analyzeEvidence = async (evidence: EvidenceItem): Promise<AnalysisR
       You are LexiPro, a senior forensic legal AI. 
       Analyze this evidence for a medical malpractice dossier: "${evidence.content}"
       
-      CRITICAL INSTRUCTIONS:
-      - Use perfect professional English.
-      - NEVER use "Iternal" (use "Internal").
-      - NEVER use "Hgh" (use "High").
-      - NEVER use "Te" or "Tis" (use "The" or "This").
+      CRITICAL ACCURACY INSTRUCTIONS:
+      - Use perfect, professional legal English.
+      - Ensure the word "The" is always spelled correctly.
+      - Ensure "Potential" and "Internal" are spelled correctly.
       
       OUTPUT JSON: { "summary": "...", "liability": "...", "reasoning": "...", "statutes": [] }
     `;
@@ -62,7 +62,7 @@ export const analyzeEvidence = async (evidence: EvidenceItem): Promise<AnalysisR
     const response = await result.response;
     clearTimeout(timeoutId);
 
-    // Return the results through the Typo-Proof filter
+    // Return the results through the expanded filter
     return typoProofParse(response.text());
 
   } catch (error: any) {
