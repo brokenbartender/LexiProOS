@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI, Type } from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { EvidenceItem, AnalysisResult } from "../types";
 import { getGeminiApiKey } from "./apiKey";
 
@@ -32,9 +32,9 @@ function safeJsonParse(text: string): any {
 export const analyzeEvidence = async (evidence: EvidenceItem): Promise<AnalysisResult> => {
   try {
     const genAI = getClient();
-    // Updated to gemini-1.5-flash for higher rate limits on free tier
+    // Updated to gemini-3-flash: the current 2026 stable model for v1beta/v1
     const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-flash" 
+        model: "gemini-3-flash" 
     });
 
     const prompt = `
